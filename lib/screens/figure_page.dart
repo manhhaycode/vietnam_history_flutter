@@ -53,10 +53,23 @@ class _FigurePageState extends State<FigurePage> {
     });
     try {
       var url = '/api/v1/figures'; // Change to your API endpoint for figures
-      final response = await dio.get(url);
+      final response = await dio.get(url, queryParameters: {
+        'page': '1',
+        'pageSize': '10',
+        'filter[name]': name,
+      });
       if (response.statusCode == 200) {
         setState(() {
           figures = response.data['data'];
+          // map figure and check if the selected figure is in the list
+          final selectedFigure =
+              Provider.of<SelectionState>(context, listen: false)
+                  .selectedFigure;
+          if (selectedFigure != null &&
+              !figures.any((figure) => figure['id'] == selectedFigure)) {
+            Provider.of<SelectionState>(context, listen: false)
+                .setSelectedFigure(null);
+          }
         });
       }
     } catch (e) {

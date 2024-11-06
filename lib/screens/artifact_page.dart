@@ -55,10 +55,24 @@ class _ArtifactPageState extends State<ArtifactPage> {
     try {
       var url =
           '/api/v1/artifacts'; // Change to your API endpoint for artifacts
-      final response = await dio.get(url);
+      final response = await dio.get(url, queryParameters: {
+        'page': '1',
+        'pageSize': '10',
+        'filter[name]': name,
+      });
       if (response.statusCode == 200) {
         setState(() {
           artifacts = response.data['data'];
+          // map artifact and check if the selected artifact is in the list
+          final selectedArtifact =
+              Provider.of<SelectionState>(context, listen: false)
+                  .selectedArtifact;
+          if (selectedArtifact != null &&
+              !artifacts
+                  .any((artifact) => artifact['id'] == selectedArtifact)) {
+            Provider.of<SelectionState>(context, listen: false)
+                .setSelectedArtifact(null);
+          }
         });
       }
     } catch (e) {

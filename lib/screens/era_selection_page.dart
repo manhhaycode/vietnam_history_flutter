@@ -55,10 +55,22 @@ class _EraSelectionPageState extends State<EraSelectionPage> {
 
     try {
       var url = '/api/v1/eras'; // Change to your API endpoint for eras
-      final response = await _dio.get(url);
+      final response = await _dio.get(url, queryParameters: {
+        'page': '1',
+        'pageSize': '10',
+        'filter[name]': name,
+      });
       if (response.statusCode == 200) {
         setState(() {
           eras = response.data['data']; // Adjust based on your API response
+          // map era and check if the selected era is in the list
+          final selectedEra =
+              Provider.of<SelectionState>(context, listen: false).selectedEra;
+          if (selectedEra != null &&
+              !eras.any((era) => era['id'] == selectedEra)) {
+            Provider.of<SelectionState>(context, listen: false)
+                .setSelectedEra(null);
+          }
         });
       }
     } catch (e) {

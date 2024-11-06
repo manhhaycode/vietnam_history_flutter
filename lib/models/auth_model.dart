@@ -25,6 +25,7 @@ class AuthModel with ChangeNotifier {
     notifyListeners(); // Notify listeners about the change
 
     try {
+      await _storage.delete(key: 'token');
       var user = await _googleSignIn.signIn();
       if (user == null) {
         print('Google sign-in aborted or failed.');
@@ -42,15 +43,10 @@ class AuthModel with ChangeNotifier {
           await FirebaseAuth.instance.signInWithCredential(credential);
 
       var token = await userCredential.user?.getIdToken(true);
-      _storage.write(
-          key: 'token', value: token); // Save the token to secure storage
 
-      var response = await _dio.post('api/v1/auth/login-firebase');
-      if (response.statusCode == 200) {
-        print('Login success');
-      } else {
-        print('Login failed');
-      }
+      var response =
+          await _dio.post('api/v1/auth/login-firebase', data: {'token': token});
+      await _storage.write(key: 'token', value: response.data['accessToken']);
 
       _errorMessage = null; // Clear any previous error messages
     } catch (error) {

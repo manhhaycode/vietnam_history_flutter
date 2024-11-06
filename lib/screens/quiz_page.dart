@@ -91,57 +91,96 @@ class QuizPageState extends State<QuizPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const CustomAppBar(title: 'Quiz'),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: quizData.length,
-              itemBuilder: (context, index) {
-                final question = quizData[index];
-                return CustomCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    return PopScope(
+        canPop: !isLoading,
+        child: Scaffold(
+            appBar: const CustomAppBar(title: 'Quiz'),
+            body: isLoading
+                ? const Center(
+                    child:
+                        CircularProgressIndicator()) // Show loading indicator
+                : Column(
                     children: [
-                      Text(
-                        question['question'],
-                        style: Theme.of(context).textTheme.headlineLarge,
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: quizData.length,
+                          itemBuilder: (context, index) {
+                            final question = quizData[index];
+                            return CustomCard(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    question['question'],
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineLarge,
+                                  ),
+                                  const SizedBox(height: 10),
+                                  ...question['options'].map<Widget>((option) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8.0),
+                                      child: CheckboxListTile(
+                                        title: Text(option),
+                                        value: selectedAnswers[index]
+                                                ?.contains(option) ??
+                                            false,
+                                        onChanged: (isChecked) {
+                                          setState(() {
+                                            if (isChecked == true) {
+                                              selectedAnswers[index] =
+                                                  (selectedAnswers[index] ?? [])
+                                                    ..add(option);
+                                            } else {
+                                              selectedAnswers[index]
+                                                  ?.remove(option);
+                                            }
+                                          });
+                                        },
+                                      ),
+                                    );
+                                  }).toList(),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                      const SizedBox(height: 10),
-                      ...question['options'].map<Widget>((option) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: CheckboxListTile(
-                            title: Text(option),
-                            value: selectedAnswers[index]?.contains(option) ??
-                                false,
-                            onChanged: (isChecked) {
-                              setState(() {
-                                if (isChecked == true) {
-                                  selectedAnswers[index] =
-                                      (selectedAnswers[index] ?? [])
-                                        ..add(option);
-                                } else {
-                                  selectedAnswers[index]?.remove(option);
-                                }
-                              });
-                            },
-                          ),
-                        );
-                      }).toList(),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: ElevatedButton(
+                          onPressed: () => {
+                            // map through selected answers and check if exists 1 or more answers in at least 1 question
+                            if (selectedAnswers.values
+                                .any((element) => element.isNotEmpty))
+                              {submitAnswers()}
+                            else
+                              {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: const Text('Error'),
+                                      content: const Text(
+                                          'Please answer all questions before submitting.'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text('Close'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                )
+                              }
+                          }, // Call submit function
+                          child: const Text('Submit'),
+                        ),
+                      ),
                     ],
-                  ),
-                );
-              },
-            ),
-          ),
-          ElevatedButton(
-            onPressed: submitAnswers,
-            child: const Text('Submit'),
-          ),
-        ],
-      ),
-    );
+                  )));
   }
 }

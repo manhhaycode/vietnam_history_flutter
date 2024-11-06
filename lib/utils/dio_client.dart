@@ -36,7 +36,7 @@ class DioClient {
         _logger.d('Request started: ${options.method} ${options.path}');
         var storage = const FlutterSecureStorage();
         var token = await storage.read(key: 'token');
-        options.headers['Authorization'] = 'Bearer ${dotenv.env["API_TOKEN"]}';
+        options.headers['Authorization'] = 'Bearer $token';
         return handler.next(options);
       },
       onResponse: (response, handler) {

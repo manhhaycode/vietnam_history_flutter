@@ -54,10 +54,23 @@ class _PlaceSelectionPageState extends State<PlaceSelectionPage> {
     });
     try {
       var url = '/api/v1/places'; // Change to your API endpoint for places
-      final response = await dio.get(url);
+      final response = await dio.get(url, queryParameters: {
+        'page': '1',
+        'pageSize': '10',
+        'filter[name]': name,
+      });
       if (response.statusCode == 200) {
         setState(() {
           places = response.data['data'];
+          // map place and check if the selected place is in the list
+          final selectedPlace =
+              Provider.of<SelectionState>(context, listen: false)
+                  .selectedFigure;
+          if (selectedPlace != null &&
+              !places.any((place) => place['id'] == selectedPlace)) {
+            Provider.of<SelectionState>(context, listen: false)
+                .setSelectedPlace(null);
+          }
         });
       }
     } catch (e) {

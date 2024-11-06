@@ -54,10 +54,22 @@ class _EventPageState extends State<EventPage> {
     });
     try {
       var url = '/api/v1/events'; // Change to your API endpoint for events
-      final response = await dio.get(url);
+      final response = await dio.get(url, queryParameters: {
+        'page': '1',
+        'pageSize': '10',
+        'filter[name]': name,
+      });
       if (response.statusCode == 200) {
         setState(() {
           events = response.data['data'];
+          // map event and check if the selected event is in the list
+          final selectedEvent =
+              Provider.of<SelectionState>(context, listen: false).selectedEvent;
+          if (selectedEvent != null &&
+              !events.any((era) => era['id'] == selectedEvent)) {
+            Provider.of<SelectionState>(context, listen: false)
+                .setSelectedEvent(null);
+          }
         });
       }
     } catch (e) {

@@ -62,6 +62,14 @@ class _TopicSelectionPageState extends State<TopicSelectionPage> {
       if (response.statusCode == 200) {
         setState(() {
           topics = response.data['data'];
+          // map topics and check if the selected topic is in the list
+          final selectedTopic =
+              Provider.of<SelectionState>(context, listen: false).selectedTopic;
+          if (selectedTopic != null &&
+              !topics.any((topic) => topic['id'] == selectedTopic)) {
+            Provider.of<SelectionState>(context, listen: false)
+                .setSelectedTopic(null);
+          }
         });
       }
     } catch (e) {
